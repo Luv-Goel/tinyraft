@@ -140,6 +140,15 @@ class RaftNode:
         if self.state is not State.LEADER:
             raise NotLeaderError(self.leader_id)
         await self._wait_committed(index, timeout)
+        # The entry may have been overwritten (truncated by a new leader)
+        # while this node's leadership was unstable. Verify the entry now
+        # sitting at ``index`` is really ours before reporting success —
+        # otherwise a lost write would be acknowledged. If it was replaced,
+        # the command never committed and the client must retry (paper §8).
+        if (index > self.log.last_index
+                or self.log.term_at(index) != entry.term
+                or self.log.entry(index).command != command):
+            raise NotLeaderError(self.leader_id)
         # wait for OUR applier to process it so writes are applied once and
         # the returned value is the real state-machine result
         await self._wait_applied(index, timeout)
