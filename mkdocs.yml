@@ -1,0 +1,32 @@
+site_name: TinyRaft
+site_description: A from-scratch implementation of the Raft consensus protocol with a linearizable, replicated key/value store on top. Pure Python, zero dependencies.
+site_author: Luv Goel
+repo_url: https://github.com/Luv-Goel/tinyraft
+repo_name: Luv-Goel/tinyraft
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - toc.integrate
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - Architecture: architecture.md
+  - API Reference: api.md
+  - Contributing: contributing.md

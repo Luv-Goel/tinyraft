@@ -19,6 +19,10 @@ classifiers = [
     "Topic :: System :: Distributed Computing",
 ]
 
+[project.optional-dependencies]
+test = ["pytest", "pytest-asyncio", "pytest-cov"]
+examples = ["aiohttp"]
+
 [project.urls]
 Homepage = "https://github.com/Luv-Goel/tinyraft"
 
