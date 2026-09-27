@@ -1,13 +1,29 @@
-# tinyraft
+# 🚀 TinyRaft
 
 > A from-scratch implementation of the **Raft consensus protocol** with a
 > linearizable, replicated key/value store on top. Pure Python, zero
 > dependencies, real TCP transport.
 
-[![CI](https://github.com/Luv-Goel/tinyraft/actions/workflows/ci.yml/badge.svg)](https://github.com/Luv-Goel/tinyraft/actions/workflows/ci.yml)
-![Python](https://img.shields.io/badge/python-3.10%2B-blue)
-![Dependencies](https://img.shields.io/badge/dependencies-zero-brightgreen)
-![License](https://img.shields.io/badge/license-MIT-green)
+<p align="center">
+  <a href="https://github.com/Luv-Goel/tinyraft/actions/workflows/ci.yml">
+    <img src="https://github.com/Luv-Goel/tinyraft/actions/workflows/ci.yml/badge.svg" alt="CI Status">
+  </a>
+  <a href="https://github.com/Luv-Goel/tinyraft/actions/workflows/pages.yml">
+    <img src="https://github.com/Luv-Goel/tinyraft/actions/workflows/pages.yml/badge.svg" alt="Docs">
+  </a>
+  <a href="https://pypi.org/project/tinyraft/">
+    <img src="https://img.shields.io/pypi/v/tinyraft.svg" alt="PyPI Version">
+  </a>
+  <a href="https://pypi.org/project/tinyraft/">
+    <img src="https://img.shields.io/pypi/pyversions/tinyraft.svg" alt="Python Versions">
+  </a>
+  <a href="https://github.com/Luv-Goel/tinyraft/blob/main/LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License">
+  </a>
+</p>
+
+📚 **[Read the Documentation](https://Luv-Goel.github.io/tinyraft/)** | 🐞 **[Report a Bug](https://github.com/Luv-Goel/tinyraft/issues/new)** | 🙋 **[Request a Feature](https://github.com/Luv-Goel/tinyraft/issues/new)**
+
 
 Raft is the consensus algorithm behind etcd, Consul, TiKV and CockroachDB.
 This repo implements it faithfully from the
@@ -57,6 +73,29 @@ n1    follower  3     n0      6     2
   committed data survived:
   get 'lang'      = python
   get 'consensus' = raft+paxos?-no-just-raft
+```
+
+## Architecture
+
+```mermaid
+graph TD
+    Client[Client] -->|Read/Write Requests| Node1(Leader Node)
+    
+    subgraph TinyRaft Cluster
+        Node1 -->|AppendEntries RPC| Node2(Follower Node)
+        Node1 -->|AppendEntries RPC| Node3(Follower Node)
+        
+        Node2 -->|RequestVote RPC| Node1
+        Node3 -->|RequestVote RPC| Node1
+    end
+    
+    Node1 --> WAL1[(Write-Ahead Log)]
+    Node2 --> WAL2[(Write-Ahead Log)]
+    Node3 --> WAL3[(Write-Ahead Log)]
+    
+    Node1 -.-> StateMachine1[KV Store]
+    Node2 -.-> StateMachine2[KV Store]
+    Node3 -.-> StateMachine3[KV Store]
 ```
 
 ## Use it as a library
@@ -121,6 +160,31 @@ Highlights:
   commit new entries
 - `test_state_persists_across_restart` — term, vote and the log survive
   process restarts (fsync'd WAL)
+
+## HTTP Proxy Example
+
+TinyRaft includes a built-in HTTP proxy that exposes the Raft KV store via a REST API:
+
+```bash
+# Install optional dependencies for examples
+pip install -e .[examples]
+
+# Run the proxy with a 3-node cluster
+python examples/http_proxy.py --nodes 3 --port 8080
+```
+
+You can then test it using `curl`:
+
+```bash
+# Get cluster status
+curl http://localhost:8080/status
+
+# Set a key
+curl -X POST -H "Content-Type: application/json" -d '{"value": "bar"}' http://localhost:8080/kv/foo
+
+# Get the key
+curl http://localhost:8080/kv/foo
+```
 
 ## Design notes
 
